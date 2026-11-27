@@ -273,6 +273,22 @@ body.menu #side .mlinks>a,body.menu #side .subwrap a{opacity:1;transform:none;tr
 @keyframes sh2{to{background-position:-150% 0}}
 .sgrid figcaption .src{color:var(--acc);flex:none}
 @media(max-width:600px){#lbinfo{max-width:48vw}#lbhint{display:none}#lb .bar{gap:8px}}
+/* For Actress Lovers button */
+.lovers{display:flex;justify-content:center}
+.lovebtn{position:relative;display:flex;align-items:center;justify-content:space-between;gap:24px;width:min(980px,100%);padding:clamp(26px,4vw,46px) clamp(24px,4vw,56px);border-radius:28px;text-decoration:none;color:var(--ink);background:linear-gradient(120deg,rgba(217,74,90,.22),rgba(217,119,87,.12) 50%,rgba(255,143,160,.2));border:1px solid rgba(255,143,160,.35);overflow:hidden;isolation:isolate;transition:transform .35s cubic-bezier(.2,.8,.1,1),border-color .3s,box-shadow .4s}
+.lovebtn::before{content:"";position:absolute;inset:-2px;z-index:-1;background:radial-gradient(260px circle at var(--lx,50%) var(--ly,50%),rgba(255,93,115,.45),transparent 70%);opacity:0;transition:opacity .3s}
+.lovebtn:hover::before,.lovebtn:focus-visible::before{opacity:1}
+.lovebtn::after{content:"";position:absolute;top:0;bottom:0;width:40%;left:-60%;z-index:-1;background:linear-gradient(100deg,transparent,rgba(255,255,255,.14),transparent);animation:sweep 3.6s ease-in-out infinite}
+@keyframes sweep{60%,100%{left:120%}}
+.lovebtn:hover{border-color:#ff8fa0;box-shadow:0 24px 70px rgba(217,74,90,.35)}
+.lovebtn:active{transform:scale(.98)}
+.lb-in{display:grid;gap:8px}
+.lb-in>.gl{font-family:Syne,sans-serif;font-weight:800;text-transform:uppercase;font-size:clamp(30px,6vw,72px);line-height:.95;letter-spacing:-.01em}
+.lb-in small{font-family:Syne,sans-serif;text-transform:uppercase;letter-spacing:.22em;font-size:12px;color:#ff8fa0}
+.lb-arrow{flex:none;display:grid;place-items:center;width:clamp(56px,8vw,88px);height:clamp(56px,8vw,88px);border-radius:50%;background:var(--ink);color:var(--bg);font-size:clamp(22px,3vw,34px);transition:transform .4s cubic-bezier(.3,1.6,.5,1)}
+.lovebtn:hover .lb-arrow{transform:translateX(8px) rotate(-12deg);background:#ff5d73;color:#fff}
+@media(max-width:600px){.lovebtn{flex-direction:column;align-items:flex-start}}
+@media(prefers-reduced-motion:reduce){.lovebtn::after{animation:none;display:none}}
 @media(max-width:600px){.reel{grid-template-columns:minmax(0,1fr)}.acts{justify-content:flex-start}nav .r a{display:none}}
 @media(prefers-reduced-motion:reduce){.gvid{display:none}*{animation:none!important;transition:none!important}.word span,.rv{transform:none;opacity:1}}
 </style></head><body>
@@ -352,7 +368,17 @@ body.menu #side .mlinks>a,body.menu #side .subwrap a{opacity:1;transform:none;tr
     <div class="bctl"><button class="btn" id="shuf">Shuffle prints</button><button class="btn" id="reclip">Clip all back</button></div>
   </section>
 
-  <section class="band" id="reels">
+  <section class="band lovers" id="reels">
+    <a class="lovebtn" id="loveBtn" href="#for-actress-lovers"><span class="lb-in"><span class="gl" data-text="For Actress Lovers">For Actress Lovers</span><small>Vids I–V · tap to enter</small></span><span class="lb-arrow" aria-hidden="true">→</span></a>
+  </section>
+
+  <section class="band"><p class="quote rv">Some moments are worth watching twice.</p></section>
+
+
+  </main>
+  <main class="view" id="v-vids" hidden>
+    <div class="vhead"><div class="crumb"><a href="#home">Home</a><span>/</span><span>For Actress Lovers</span></div><h1 class="vtitle"><span class="gl" data-text="For Actress Lovers">For Actress Lovers</span></h1></div>
+  <section class="band" id="vids" style="padding-top:0">
     <h2 class="rv">Vids</h2>
     <div class="love rv" aria-label="Spidergirl loves undi">
       <svg class="kissart" viewBox="0 0 220 160" aria-hidden="true">
@@ -366,10 +392,6 @@ body.menu #side .mlinks>a,body.menu #side .subwrap a{opacity:1;transform:none;tr
     </div>
     <div id="list"></div>
   </section>
-
-  <section class="band"><p class="quote rv">Some moments are worth watching twice.</p></section>
-
-
   </main>
   <main class="view" id="v-models" hidden>
     <div class="vhead"><div class="crumb"><a href="#home">Home</a><span>/</span><span>Insta Models</span></div><h1 class="vtitle"><span class="gl" data-text="Insta Models">Insta Models</span></h1></div>
@@ -395,7 +417,7 @@ body.menu #side .mlinks>a,body.menu #side .subwrap a{opacity:1;transform:none;tr
   <a href="#insta-models" id="imLink" data-v="models" aria-expanded="false" aria-controls="imSub" style="--d:1">Insta Models <span class="chev" aria-hidden="true">+</span></a>
   <div class="subwrap" id="imSub"><div><a href="#nisha-gowda" class="sub" data-v="nisha">Nisha Gowda</a></div></div>
   <a href="#search" data-v="home" style="--d:2">Image Search</a>
-  <a href="#reels" data-v="home" style="--d:3">Vids</a>
+  <a href="#for-actress-lovers" data-v="vids" style="--d:3">For Actress Lovers</a>
   </div>
 </aside>
 <div id="lb" role="dialog" aria-label="Zoomed photo"><div class="bar"><span id="lbhint">Pinch, scroll or double-tap to zoom · drag to move</span><div id="lbinfo" hidden><b id="lbt"></b><small id="lbc"></small><a id="lbpin" href="#" target="_blank" rel="noopener noreferrer" hidden>View original Pin on Pinterest ↗</a></div><div class="zb"><button class="rb" id="zo" aria-label="Zoom out">−</button><button class="rb" id="zi" aria-label="Zoom in">+</button><button class="btn p" id="lbdl" hidden>↓ Download</button><button class="rb" id="lbx" aria-label="Close">×</button></div></div><img id="lbi" alt=""></div>
@@ -597,8 +619,11 @@ $('sf').addEventListener('submit',e=>{e.preventDefault();const q=$('sq').value.t
   if(eng==='pinsite'){st.q=q;st.mode='pin';runPin(false);return}
   const a=document.createElement('a');a.href=ENG[eng](encodeURIComponent(q));a.target='_blank';a.rel='noopener noreferrer';document.body.appendChild(a);a.click();a.remove()});}
 
+/* For Actress Lovers button: spotlight + magnetic tilt */
+{const lb=$('loveBtn');lb.addEventListener('pointermove',e=>{const r=lb.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;lb.style.setProperty('--lx',x+'px');lb.style.setProperty('--ly',y+'px');lb.style.transform='perspective(900px) rotateX('+((y/r.height-.5)*-6)+'deg) rotateY('+((x/r.width-.5)*8)+'deg)'});lb.addEventListener('pointerleave',()=>{lb.style.transform=''});}
+
 /* ---------- views, menu, glitch ---------- */
-const VIEWS={home:'v-home','insta-models':'v-models','nisha-gowda':'v-nisha'};
+const VIEWS={home:'v-home','insta-models':'v-models','nisha-gowda':'v-nisha','for-actress-lovers':'v-vids'};
 function route(){if(!$('site').classList.contains('on'))return;const h=location.hash.slice(1)||'home';const v=VIEWS[h]||'v-home';
   Object.values(VIEWS).forEach(id=>$(id).hidden=id!==v);
   document.querySelectorAll('#side a').forEach(a=>a.toggleAttribute('aria-current',a.getAttribute('href')==='#'+h));
