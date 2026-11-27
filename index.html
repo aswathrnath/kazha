@@ -545,7 +545,7 @@ async function openverse(q,page){
 function render(list){
   const start=st.items.length;st.items.push(...list);
   $('sgrid').insertAdjacentHTML('beforeend',list.map((x,i)=>'<figure data-i="'+(start+i)+'" tabindex="0" role="button" aria-label="'+esc2('Preview '+x.title)+'"><img loading="lazy" src="'+esc2(x.thumb)+'" alt="'+esc2(x.title)+'"><figcaption><span>'+esc2(x.creator+(x.license?' · '+x.license:''))+'</span><span class="src">'+esc2(x.src==='Wikimedia Commons'?'Commons':'Openverse')+'</span></figcaption></figure>').join(''));
-  $('sgrid').querySelectorAll('figure:not([data-ok])').forEach(f=>{f.dataset.ok=1;const im=f.querySelector('img');im.addEventListener('error',()=>f.remove(),{once:true})});
+  $('sgrid').querySelectorAll('figure:not([data-ok])').forEach(f=>{f.dataset.ok=1;const im=f.querySelector('img');im.addEventListener('error',()=>{f.remove();updCount()},{once:true})});
 }
 async function run(more){
   if(st.busy)return;st.busy=true;$('smore').hidden=true;$('sload').hidden=false;$('smsg2').textContent=more?'Loading more…':'Searching for “'+st.q+'”…';
@@ -559,9 +559,10 @@ async function run(more){
   const seen=new Set(st.items.map(x=>x.full));render(mix.filter(x=>!seen.has(x.full)&&seen.add(x.full)));
   $('sload').hidden=true;st.busy=false;
   if(!st.items.length){$('smsg2').textContent=fails===2?'Image search could not load right now. Check your connection and try again.':'No openly licensed photos found for “'+st.q+'”. Try the full name or another spelling, or use Google Images ↗.';return}
-  $('smsg2').textContent=st.items.length+' photos for “'+st.q+'” · tap one to preview';
+  updCount();
   $('smore').hidden=!(st.cMore||st.oMore);
 }
+function updCount(){const n=$('sgrid').children.length;if(st.q&&!st.busy)$('smsg2').textContent=n?n+' photos for “'+st.q+'” · tap one to preview':'No openly licensed photos found for “'+st.q+'”. Try the full name or another spelling, or use Google Images ↗.'}
 let cur2=null;
 function openItem(x){cur2=x;li.onerror=()=>{li.onerror=null;li.src=x.thumb};li.src=x.full;li.alt=x.title;z=1;tx=ty=0;apply();
   $('lbt').textContent=x.title;$('lbc').textContent=x.creator+(x.license?' · '+x.license:'')+' · via '+x.src;$('lbinfo').hidden=false;$('lbhint').hidden=true;$('lbdl').hidden=!x.dl;lbx.classList.add('on')}
