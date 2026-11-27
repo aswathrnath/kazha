@@ -267,6 +267,7 @@ body.menu #side .mlinks>a,body.menu #side .subwrap a{opacity:1;transform:none;tr
 #lbinfo b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #lbinfo small{color:var(--mute);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #lbdl{min-height:44px}
+#lbpin{font-size:12px;color:#ff8fa0;width:fit-content}
 .sload{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(200px,100%),1fr));gap:12px;margin-top:14px}
 .sload i{aspect-ratio:3/4;border-radius:10px;background:linear-gradient(100deg,var(--bg2) 30%,#2c2a26 50%,var(--bg2) 70%);background-size:300% 100%;animation:sh2 1.2s linear infinite}
 @keyframes sh2{to{background-position:-150% 0}}
@@ -308,6 +309,7 @@ body.menu #side .mlinks>a,body.menu #side .subwrap a{opacity:1;transform:none;tr
     </form>
     <div class="engines rv" id="eng" role="group" aria-label="Search with">
       <button type="button" class="btn on" data-e="site">On Kazha</button>
+      <button type="button" class="btn" data-e="pinsite">Pinterest Pins</button>
       <button type="button" class="btn" data-e="google">Google Images ↗</button>
       <button type="button" class="btn" data-e="ddg">DuckDuckGo ↗</button>
       <button type="button" class="btn" data-e="pin">Pinterest ↗</button>
@@ -396,7 +398,7 @@ body.menu #side .mlinks>a,body.menu #side .subwrap a{opacity:1;transform:none;tr
   <a href="#reels" data-v="home" style="--d:3">Vids</a>
   </div>
 </aside>
-<div id="lb" role="dialog" aria-label="Zoomed photo"><div class="bar"><span id="lbhint">Pinch, scroll or double-tap to zoom · drag to move</span><div id="lbinfo" hidden><b id="lbt"></b><small id="lbc"></small></div><div class="zb"><button class="rb" id="zo" aria-label="Zoom out">−</button><button class="rb" id="zi" aria-label="Zoom in">+</button><button class="btn p" id="lbdl" hidden>↓ Download</button><button class="rb" id="lbx" aria-label="Close">×</button></div></div><img id="lbi" alt=""></div>
+<div id="lb" role="dialog" aria-label="Zoomed photo"><div class="bar"><span id="lbhint">Pinch, scroll or double-tap to zoom · drag to move</span><div id="lbinfo" hidden><b id="lbt"></b><small id="lbc"></small><a id="lbpin" href="#" target="_blank" rel="noopener noreferrer" hidden>View original Pin on Pinterest ↗</a></div><div class="zb"><button class="rb" id="zo" aria-label="Zoom out">−</button><button class="rb" id="zi" aria-label="Zoom in">+</button><button class="btn p" id="lbdl" hidden>↓ Download</button><button class="rb" id="lbx" aria-label="Close">×</button></div></div><img id="lbi" alt=""></div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -526,7 +528,7 @@ musUI();
 const esc2=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const okUrl=u=>typeof u==='string'&&u.startsWith('https://');
 const txt=html=>{try{return (new DOMParser().parseFromString(String(html||''),'text/html').body.textContent||'').trim()}catch(e){return ''}};
-let st={q:'',cOff:0,cMore:false,oPage:1,oMore:false,items:[],busy:false};
+let st={q:'',cOff:0,cMore:false,oPage:1,oMore:false,items:[],busy:false,mode:'site',pinBm:null};
 $('eng').querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>{eng=b.dataset.e;$('eng').querySelectorAll('[data-e]').forEach(x=>x.classList.toggle('on',x===b))});
 async function commons(q,off){
   const u='https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*&generator=search&gsrnamespace=6&gsrlimit=20&gsroffset='+off+'&gsrsearch='+encodeURIComponent(q+' filetype:bitmap')+'&prop=imageinfo&iiprop=url|extmetadata&iiurlwidth=480&iiextmetadatafilter=LicenseShortName|Artist|ObjectName';
@@ -542,9 +544,24 @@ async function openverse(q,page){
   const items=(d.results||[]).filter(x=>okUrl(x.thumbnail)&&okUrl(x.url)).map(x=>({thumb:x.thumbnail,full:x.url,title:x.title||q,creator:x.creator||'Unknown',license:((x.license||'')+' '+(x.license_version||'')).trim().toUpperCase(),dl:!!x.license,src:'Openverse',page:x.foreign_landing_url}));
   return{items,more:!!(d.page_count&&page<d.page_count)}
 }
+async function runPin(more){
+  if(st.busy)return;st.busy=true;$('smore').hidden=true;$('sload').hidden=false;$('smsg2').textContent=more?'Loading more Pins…':'Searching Pinterest for “'+st.q+'”…';
+  if(!more){$('sgrid').innerHTML='';st.items=[];st.pinBm=null}
+  try{
+    const r=await fetch('/api/pinterest?q='+encodeURIComponent(st.q)+(more&&st.pinBm?'&bookmark='+encodeURIComponent(st.pinBm):''));
+    let d={};try{d=await r.json()}catch(e){}
+    if(!r.ok){$('sload').hidden=true;st.busy=false;$('smsg2').textContent=(d&&typeof d.message==='string'?d.message:'Pinterest search is not available right now.')+' No results are shown. Try “On Kazha” or Pinterest ↗.';return}
+    const list=(Array.isArray(d.items)?d.items:[]).filter(x=>x&&okUrl(x.thumb)&&okUrl(x.full)&&okUrl(x.pinUrl)).map(x=>({thumb:x.thumb,full:x.full,title:String(x.title||st.q),creator:'Pinterest',license:'',dl:false,src:'Pinterest',page:x.pinUrl}));
+    const seen=new Set(st.items.map(x=>x.full));render(list.filter(x=>!seen.has(x.full)&&seen.add(x.full)));
+    st.pinBm=typeof d.bookmark==='string'&&d.bookmark?d.bookmark:null;
+    $('sload').hidden=true;st.busy=false;
+    if(!st.items.length){$('smsg2').textContent='Pinterest returned no Pins for “'+st.q+'”.';return}
+    updCount();$('smore').hidden=!st.pinBm;
+  }catch(e){$('sload').hidden=true;st.busy=false;$('smsg2').textContent='Pinterest search could not load right now. No results are shown.'}
+}
 function render(list){
   const start=st.items.length;st.items.push(...list);
-  $('sgrid').insertAdjacentHTML('beforeend',list.map((x,i)=>'<figure data-i="'+(start+i)+'" tabindex="0" role="button" aria-label="'+esc2('Preview '+x.title)+'"><img loading="lazy" src="'+esc2(x.thumb)+'" alt="'+esc2(x.title)+'"><figcaption><span>'+esc2(x.creator+(x.license?' · '+x.license:''))+'</span><span class="src">'+esc2(x.src==='Wikimedia Commons'?'Commons':'Openverse')+'</span></figcaption></figure>').join(''));
+  $('sgrid').insertAdjacentHTML('beforeend',list.map((x,i)=>'<figure data-i="'+(start+i)+'" tabindex="0" role="button" aria-label="'+esc2('Preview '+x.title)+'"><img loading="lazy" src="'+esc2(x.thumb)+'" alt="'+esc2(x.title)+'"><figcaption><span>'+esc2(x.creator+(x.license?' · '+x.license:''))+'</span><span class="src">'+esc2(x.src==='Wikimedia Commons'?'Commons':x.src)+'</span></figcaption></figure>').join(''));
   $('sgrid').querySelectorAll('figure:not([data-ok])').forEach(f=>{f.dataset.ok=1;const im=f.querySelector('img');im.addEventListener('error',()=>{f.remove();updCount()},{once:true})});
 }
 async function run(more){
@@ -565,7 +582,7 @@ async function run(more){
 function updCount(){const n=$('sgrid').children.length;if(st.q&&!st.busy)$('smsg2').textContent=n?n+' photos for “'+st.q+'” · tap one to preview':'No openly licensed photos found for “'+st.q+'”. Try the full name or another spelling, or use Google Images ↗.'}
 let cur2=null;
 function openItem(x){cur2=x;li.onerror=()=>{li.onerror=null;li.src=x.thumb};li.src=x.full;li.alt=x.title;z=1;tx=ty=0;apply();
-  $('lbt').textContent=x.title;$('lbc').textContent=x.creator+(x.license?' · '+x.license:'')+' · via '+x.src;$('lbinfo').hidden=false;$('lbhint').hidden=true;$('lbdl').hidden=!x.dl;lbx.classList.add('on')}
+  $('lbt').textContent=x.title;$('lbc').textContent=x.src==='Pinterest'?'Image via Pinterest':x.creator+(x.license?' · '+x.license:'')+' · via '+x.src;$('lbinfo').hidden=false;$('lbhint').hidden=true;$('lbdl').hidden=!x.dl;const pl=$('lbpin');if(x.src==='Pinterest'&&okUrl(x.page)){pl.href=x.page;pl.hidden=false}else pl.hidden=true;lbx.classList.add('on')}
 new MutationObserver(()=>{if(!lbx.classList.contains('on')){cur2=null;$('lbinfo').hidden=true;$('lbhint').hidden=false;$('lbdl').hidden=true}}).observe(lbx,{attributes:true,attributeFilter:['class']});
 $('lbdl').onclick=async()=>{if(!cur2||!cur2.dl)return;const b=$('lbdl'),t=b.textContent;b.textContent='Downloading…';b.disabled=true;
   try{const r=await fetch(cur2.full);if(!r.ok)throw 0;const blob=await r.blob();const ext=(blob.type.split('/')[1]||'jpg').replace('jpeg','jpg');const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(cur2.title||'image').replace(/[^\w\- ]+/g,'').trim().slice(0,60).replace(/\s+/g,'-')+'.'+ext;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);toast('Downloaded · credit: '+cur2.creator+(cur2.license?' ('+cur2.license+')':''))}
@@ -573,10 +590,11 @@ $('lbdl').onclick=async()=>{if(!cur2||!cur2.dl)return;const b=$('lbdl'),t=b.text
   b.textContent=t;b.disabled=false};
 $('sgrid').addEventListener('click',e=>{const f=e.target.closest('figure');if(f&&st.items[+f.dataset.i])openItem(st.items[+f.dataset.i])});
 $('sgrid').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){const f=e.target.closest('figure');if(f){e.preventDefault();openItem(st.items[+f.dataset.i])}}});
-$('smore').onclick=()=>run(true);
-new IntersectionObserver(es=>{if(es[0].isIntersecting&&!$('smore').hidden)run(true)},{rootMargin:'400px'}).observe($('smore'));
+$('smore').onclick=()=>st.mode==='pin'?runPin(true):run(true);
+new IntersectionObserver(es=>{if(es[0].isIntersecting&&!$('smore').hidden)(st.mode==='pin'?runPin(true):run(true))},{rootMargin:'400px'}).observe($('smore'));
 $('sf').addEventListener('submit',e=>{e.preventDefault();const q=$('sq').value.trim();if(!q)return;
-  if(eng==='site'){st.q=q;run(false);return}
+  if(eng==='site'){st.q=q;st.mode='site';run(false);return}
+  if(eng==='pinsite'){st.q=q;st.mode='pin';runPin(false);return}
   const a=document.createElement('a');a.href=ENG[eng](encodeURIComponent(q));a.target='_blank';a.rel='noopener noreferrer';document.body.appendChild(a);a.click();a.remove()});}
 
 /* ---------- views, menu, glitch ---------- */
