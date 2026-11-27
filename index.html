@@ -102,7 +102,7 @@ footer{padding:40px max(5vw,16px) 56px;display:flex;justify-content:space-betwee
 .toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,40px);opacity:0;background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:999px;font-size:14px;z-index:60;transition:.35s}
 .toast.on{opacity:1;transform:translate(-50%,0)}
 /* Nisha slider */
-.show{padding-top:64px;background:#0e0d0c}
+.show{padding-top:0;background:#0e0d0c}
 .stage{position:relative;height:calc(100svh - 64px - 92px);min-height:380px}
 .track{display:flex;height:100%;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}
 .track::-webkit-scrollbar{display:none}
@@ -277,6 +277,20 @@ body.menu #side .mlinks>a,body.menu #side .subwrap a{opacity:1;transform:none;tr
   <nav><b>Kazha</b><div class="r"><a href="#insta-models">Insta Models</a><button class="ic" id="mus" aria-pressed="true">Music on</button><button class="ic" id="lock">Lock</button><button class="mb" id="mbtn" aria-expanded="false" aria-controls="side">Menu</button></div></nav>
 
   <main class="view" id="v-home">
+  <section class="band" id="search" style="padding-top:calc(64px + clamp(28px,4vw,56px));padding-bottom:clamp(28px,4vw,48px)">
+    <h2 class="rv">Image search</h2>
+    <p class="lede rv">Type what you want to find. Results open in a new tab.</p>
+    <form class="srch rv" id="sf" autocomplete="off" role="search">
+      <input id="sq" type="search" placeholder="Search images…" aria-label="Search images" required>
+      <button class="btn p" type="submit">Search ↗</button>
+    </form>
+    <div class="engines rv" id="eng" role="group" aria-label="Search with">
+      <button type="button" class="btn on" data-e="google">Google Images</button>
+      <button type="button" class="btn" data-e="ddg">DuckDuckGo</button>
+      <button type="button" class="btn" data-e="pin">Pinterest</button>
+    </div>
+  </section>
+
   <section class="show" id="show" aria-label="Nisha Gowda photos">
     <div class="stage">
       <div class="track" id="track" tabindex="0" aria-roledescription="carousel">
@@ -307,20 +321,6 @@ body.menu #side .mlinks>a,body.menu #side .subwrap a{opacity:1;transform:none;tr
     <p class="lede rv">Drag the prints around, tap a paper clip to unclip it, double-tap a print to zoom in.</p>
     <div class="board" id="bd"><figure class="pol" data-i="0"><button type="button" class="clipb" aria-label="Toggle paper clip" style="all:unset"><svg class="clip" viewBox="0 0 30 74" aria-hidden="true"><path d="M9 60V14a6 6 0 0 1 12 0v44a9 9 0 0 1-18 0V10a12 12 0 0 1 24 0v46" fill="none" stroke="#c9c4b8" stroke-width="2.6" stroke-linecap="round"/><path d="M9 60V14a6 6 0 0 1 12 0" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="1" stroke-linecap="round"/></svg></button><img data-n="1" alt="Nisha Gowda photo 1"><div class="lbl"><span>Nisha Gowda</span><span>No. 1</span></div></figure><figure class="pol" data-i="1"><button type="button" class="clipb" aria-label="Toggle paper clip" style="all:unset"><svg class="clip" viewBox="0 0 30 74" aria-hidden="true"><path d="M9 60V14a6 6 0 0 1 12 0v44a9 9 0 0 1-18 0V10a12 12 0 0 1 24 0v46" fill="none" stroke="#c9c4b8" stroke-width="2.6" stroke-linecap="round"/><path d="M9 60V14a6 6 0 0 1 12 0" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="1" stroke-linecap="round"/></svg></button><img data-n="0" alt="Nisha Gowda photo 2"><div class="lbl"><span>Nisha Gowda</span><span>No. 2</span></div></figure><figure class="pol" data-i="2"><button type="button" class="clipb" aria-label="Toggle paper clip" style="all:unset"><svg class="clip" viewBox="0 0 30 74" aria-hidden="true"><path d="M9 60V14a6 6 0 0 1 12 0v44a9 9 0 0 1-18 0V10a12 12 0 0 1 24 0v46" fill="none" stroke="#c9c4b8" stroke-width="2.6" stroke-linecap="round"/><path d="M9 60V14a6 6 0 0 1 12 0" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="1" stroke-linecap="round"/></svg></button><img data-n="2" alt="Nisha Gowda photo 3"><div class="lbl"><span>Nisha Gowda</span><span>No. 3</span></div></figure></div>
     <div class="bctl"><button class="btn" id="shuf">Shuffle prints</button><button class="btn" id="reclip">Clip all back</button></div>
-  </section>
-
-  <section class="band" id="search">
-    <h2 class="rv">Image search</h2>
-    <p class="lede rv">Type what you want to find. Results open in a new tab.</p>
-    <form class="srch rv" id="sf" autocomplete="off" role="search">
-      <input id="sq" type="search" placeholder="Search images…" aria-label="Search images" required>
-      <button class="btn p" type="submit">Search ↗</button>
-    </form>
-    <div class="engines rv" id="eng" role="group" aria-label="Search with">
-      <button type="button" class="btn on" data-e="google">Google Images</button>
-      <button type="button" class="btn" data-e="ddg">DuckDuckGo</button>
-      <button type="button" class="btn" data-e="pin">Pinterest</button>
-    </div>
   </section>
 
   <section class="band" id="reels">
