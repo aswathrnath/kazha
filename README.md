@@ -1,4 +1,3 @@
-# Kazha
+# kazha
 
-Static site. Deploys automatically on Netlify from the main branch.
-
+This site has been taken down.
