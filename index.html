@@ -333,22 +333,12 @@ body.menu #side .mlinks>a,body.menu #side .subwrap a{opacity:1;transform:none;tr
   <main class="view" id="v-home">
   <section class="band" id="search" style="padding-top:calc(64px + clamp(28px,4vw,56px));padding-bottom:clamp(28px,4vw,48px)">
     <h2 class="rv">Image search</h2>
-    <p class="lede rv">Search any actress, anywhere in the world. "On Kazha" shows openly licensed photos right here, from Wikimedia Commons and Openverse; the other buttons open in a new tab.</p>
+    <p class="lede rv">Type a name and search. Google Images opens in a new tab.</p>
     <form class="srch rv" id="sf" autocomplete="off" role="search">
       <input id="sq" type="search" placeholder="Actress name, e.g. Manju Warrier, IU, Zendaya…" aria-label="Search images" required>
-      <button class="btn p" type="submit">Search ↗</button>
+      <button class="btn p" type="submit">Google Images ↗</button>
     </form>
-    <div class="engines rv" id="eng" role="group" aria-label="Search with">
-      <button type="button" class="btn on" data-e="site">On Kazha</button>
-      <button type="button" class="btn" data-e="pinsite">Pinterest Pins</button>
-      <button type="button" class="btn" data-e="google">Google Images ↗</button>
-      <button type="button" class="btn" data-e="ddg">DuckDuckGo ↗</button>
-      <button type="button" class="btn" data-e="pin">Pinterest ↗</button>
-    </div>
-    <p class="smsg" id="smsg2" aria-live="polite"></p>
-    <div class="sgrid" id="sgrid"></div>
-    <div class="sload" id="sload" hidden><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-    <button class="btn" id="smore" hidden>Load more</button>
+    
   </section>
 
   <section class="show" id="show" aria-label="Nisha Gowda photos">
@@ -560,79 +550,8 @@ $('mno').onclick=()=>{$('mask').classList.remove('on');setMusic(false)};
 document.addEventListener('visibilitychange',()=>{document.hidden?bgm.pause():musPlay()});
 musUI();
 
-/* ---------- image search: Wikimedia Commons + Openverse in-site, others in a new tab ---------- */
-{const ENG={google:q=>'https://www.google.com/search?tbm=isch&q='+q,ddg:q=>'https://duckduckgo.com/?ia=images&iax=images&q='+q,pin:q=>'https://www.pinterest.com/search/pins/?q='+q};let eng='site';
-const esc2=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const okUrl=u=>typeof u==='string'&&u.startsWith('https://');
-const txt=html=>{try{return (new DOMParser().parseFromString(String(html||''),'text/html').body.textContent||'').trim()}catch(e){return ''}};
-let st={q:'',cOff:0,cMore:false,oPage:1,oMore:false,items:[],busy:false,mode:'site',pinBm:null};
-$('eng').querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>{eng=b.dataset.e;$('eng').querySelectorAll('[data-e]').forEach(x=>x.classList.toggle('on',x===b))});
-async function commons(q,off){
-  const u='https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*&generator=search&gsrnamespace=6&gsrlimit=20&gsroffset='+off+'&gsrsearch='+encodeURIComponent(q+' filetype:bitmap')+'&prop=imageinfo&iiprop=url|extmetadata&iiurlwidth=480&iiextmetadatafilter=LicenseShortName|Artist|ObjectName';
-  const r=await fetch(u);if(!r.ok)throw new Error('commons '+r.status);const d=await r.json();
-  const pages=Object.values((d.query&&d.query.pages)||{}).sort((a,b)=>(a.index||0)-(b.index||0));
-  const items=pages.map(p=>{const ii=(p.imageinfo||[])[0]||{},m=ii.extmetadata||{};const lic=txt(m.LicenseShortName&&m.LicenseShortName.value);
-    return{thumb:ii.thumburl,full:ii.url,title:txt(m.ObjectName&&m.ObjectName.value)||String(p.title||'').replace(/^File:/,'').replace(/\.[a-z]+$/i,''),creator:txt(m.Artist&&m.Artist.value)||'Unknown',license:lic,dl:!!lic,src:'Wikimedia Commons',page:ii.descriptionurl}}).filter(x=>okUrl(x.thumb)&&okUrl(x.full));
-  return{items,more:!!(d.continue&&d.continue.gsroffset),next:d.continue?d.continue.gsroffset:off}
-}
-async function openverse(q,page){
-  const r=await fetch('https://api.openverse.org/v1/images/?mature=false&page_size=20&page='+page+'&q='+encodeURIComponent(q));
-  if(!r.ok)throw new Error('openverse '+r.status);const d=await r.json();
-  const items=(d.results||[]).filter(x=>okUrl(x.thumbnail)&&okUrl(x.url)).map(x=>({thumb:x.thumbnail,full:x.url,title:x.title||q,creator:x.creator||'Unknown',license:((x.license||'')+' '+(x.license_version||'')).trim().toUpperCase(),dl:!!x.license,src:'Openverse',page:x.foreign_landing_url}));
-  return{items,more:!!(d.page_count&&page<d.page_count)}
-}
-async function runPin(more){
-  if(st.busy)return;st.busy=true;$('smore').hidden=true;$('sload').hidden=false;$('smsg2').textContent=more?'Loading more Pins…':'Searching Pinterest for “'+st.q+'”…';
-  if(!more){$('sgrid').innerHTML='';st.items=[];st.pinBm=null}
-  try{
-    const r=await fetch('/api/pinterest?q='+encodeURIComponent(st.q)+(more&&st.pinBm?'&bookmark='+encodeURIComponent(st.pinBm):''));
-    let d={};try{d=await r.json()}catch(e){}
-    if(!r.ok){$('sload').hidden=true;st.busy=false;$('smsg2').textContent=(d&&typeof d.message==='string'?d.message:'Pinterest search is not available right now.')+' No results are shown. Try “On Kazha” or Pinterest ↗.';return}
-    const list=(Array.isArray(d.items)?d.items:[]).filter(x=>x&&okUrl(x.thumb)&&okUrl(x.full)&&okUrl(x.pinUrl)).map(x=>({thumb:x.thumb,full:x.full,title:String(x.title||st.q),creator:'Pinterest',license:'',dl:false,src:'Pinterest',page:x.pinUrl}));
-    const seen=new Set(st.items.map(x=>x.full));render(list.filter(x=>!seen.has(x.full)&&seen.add(x.full)));
-    st.pinBm=typeof d.bookmark==='string'&&d.bookmark?d.bookmark:null;
-    $('sload').hidden=true;st.busy=false;
-    if(!st.items.length){$('smsg2').textContent='Pinterest returned no Pins for “'+st.q+'”.';return}
-    updCount();$('smore').hidden=!st.pinBm;
-  }catch(e){$('sload').hidden=true;st.busy=false;$('smsg2').textContent='Pinterest search could not load right now. No results are shown.'}
-}
-function render(list){
-  const start=st.items.length;st.items.push(...list);
-  $('sgrid').insertAdjacentHTML('beforeend',list.map((x,i)=>'<figure data-i="'+(start+i)+'" tabindex="0" role="button" aria-label="'+esc2('Preview '+x.title)+'"><img loading="lazy" src="'+esc2(x.thumb)+'" alt="'+esc2(x.title)+'"><figcaption><span>'+esc2(x.creator+(x.license?' · '+x.license:''))+'</span><span class="src">'+esc2(x.src==='Wikimedia Commons'?'Commons':x.src)+'</span></figcaption></figure>').join(''));
-  $('sgrid').querySelectorAll('figure:not([data-ok])').forEach(f=>{f.dataset.ok=1;const im=f.querySelector('img');im.addEventListener('error',()=>{f.remove();updCount()},{once:true})});
-}
-async function run(more){
-  if(st.busy)return;st.busy=true;$('smore').hidden=true;$('sload').hidden=false;$('smsg2').textContent=more?'Loading more…':'Searching for “'+st.q+'”…';
-  if(!more){$('sgrid').innerHTML='';st.items=[];st.cOff=0;st.oPage=1;st.cMore=true;st.oMore=true}
-  const jobs=[st.cMore?commons(st.q,st.cOff):null,st.oMore?openverse(st.q,st.oPage):null];
-  const [c,o]=await Promise.allSettled(jobs.map(j=>j||Promise.resolve(null)));
-  let a=[],b=[],fails=0;
-  if(c.status==='fulfilled'&&c.value){a=c.value.items;st.cMore=c.value.more;st.cOff=c.value.next}else if(c.status==='rejected'){fails++;st.cMore=false}
-  if(o.status==='fulfilled'&&o.value){b=o.value.items;st.oMore=o.value.more;st.oPage++}else if(o.status==='rejected'){fails++;st.oMore=false}
-  const mix=[];for(let i=0;i<Math.max(a.length,b.length);i++){if(a[i])mix.push(a[i]);if(b[i])mix.push(b[i])}
-  const seen=new Set(st.items.map(x=>x.full));render(mix.filter(x=>!seen.has(x.full)&&seen.add(x.full)));
-  $('sload').hidden=true;st.busy=false;
-  if(!st.items.length){$('smsg2').textContent=fails===2?'Image search could not load right now. Check your connection and try again.':'No openly licensed photos found for “'+st.q+'”. Try the full name or another spelling, or use Google Images ↗.';return}
-  updCount();
-  $('smore').hidden=!(st.cMore||st.oMore);
-}
-function updCount(){const n=$('sgrid').children.length;if(st.q&&!st.busy)$('smsg2').textContent=n?n+' photos for “'+st.q+'” · tap one to preview':'No openly licensed photos found for “'+st.q+'”. Try the full name or another spelling, or use Google Images ↗.'}
-let cur2=null;
-function openItem(x){cur2=x;li.onerror=()=>{li.onerror=null;li.src=x.thumb};li.src=x.full;li.alt=x.title;z=1;tx=ty=0;apply();
-  $('lbt').textContent=x.title;$('lbc').textContent=x.src==='Pinterest'?'Image via Pinterest':x.creator+(x.license?' · '+x.license:'')+' · via '+x.src;$('lbinfo').hidden=false;$('lbhint').hidden=true;$('lbdl').hidden=!x.dl;const pl=$('lbpin');if(x.src==='Pinterest'&&okUrl(x.page)){pl.href=x.page;pl.hidden=false}else pl.hidden=true;lbx.classList.add('on')}
-new MutationObserver(()=>{if(!lbx.classList.contains('on')){cur2=null;$('lbinfo').hidden=true;$('lbhint').hidden=false;$('lbdl').hidden=true}}).observe(lbx,{attributes:true,attributeFilter:['class']});
-$('lbdl').onclick=async()=>{if(!cur2||!cur2.dl)return;const b=$('lbdl'),t=b.textContent;b.textContent='Downloading…';b.disabled=true;
-  try{const r=await fetch(cur2.full);if(!r.ok)throw 0;const blob=await r.blob();const ext=(blob.type.split('/')[1]||'jpg').replace('jpeg','jpg');const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(cur2.title||'image').replace(/[^\w\- ]+/g,'').trim().slice(0,60).replace(/\s+/g,'-')+'.'+ext;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);toast('Downloaded · credit: '+cur2.creator+(cur2.license?' ('+cur2.license+')':''))}
-  catch(e){toast('This image could not be downloaded here')}
-  b.textContent=t;b.disabled=false};
-$('sgrid').addEventListener('click',e=>{const f=e.target.closest('figure');if(f&&st.items[+f.dataset.i])openItem(st.items[+f.dataset.i])});
-$('sgrid').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){const f=e.target.closest('figure');if(f){e.preventDefault();openItem(st.items[+f.dataset.i])}}});
-$('smore').onclick=()=>st.mode==='pin'?runPin(true):run(true);
-new IntersectionObserver(es=>{if(es[0].isIntersecting&&!$('smore').hidden)(st.mode==='pin'?runPin(true):run(true))},{rootMargin:'400px'}).observe($('smore'));
-$('sf').addEventListener('submit',e=>{e.preventDefault();const q=$('sq').value.trim();if(!q)return;
-  if(eng==='site'){st.q=q;st.mode='site';run(false);return}
-  if(eng==='pinsite'){st.q=q;st.mode='pin';runPin(false);return}
-  const a=document.createElement('a');a.href=ENG[eng](encodeURIComponent(q));a.target='_blank';a.rel='noopener noreferrer';document.body.appendChild(a);a.click();a.remove()});}
+/* ---------- image search: Google Images in a new tab ---------- */
+$('sf').addEventListener('submit',e=>{e.preventDefault();const q=$('sq').value.trim();if(!q)return;const a=document.createElement('a');a.href='https://www.google.com/search?tbm=isch&q='+encodeURIComponent(q);a.target='_blank';a.rel='noopener noreferrer';document.body.appendChild(a);a.click();a.remove()});
 
 /* For Actress Lovers button: spotlight + magnetic tilt */
 {const lb=$('loveBtn');lb.addEventListener('pointermove',e=>{const r=lb.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;lb.style.setProperty('--lx',x+'px');lb.style.setProperty('--ly',y+'px');lb.style.transform='perspective(900px) rotateX('+((y/r.height-.5)*-6)+'deg) rotateY('+((x/r.width-.5)*8)+'deg)'});lb.addEventListener('pointerleave',()=>{lb.style.transform=''});}
