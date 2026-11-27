@@ -263,6 +263,15 @@ body.menu #side .mlinks>a,body.menu #side .subwrap a{opacity:1;transform:none;tr
 #mask b{font-family:Syne,sans-serif;text-transform:uppercase;letter-spacing:.06em}
 #mask span{color:var(--mute);font-size:14px}
 .mb2{display:flex;gap:10px;margin-top:8px;flex-wrap:wrap}
+#lbinfo{display:grid;gap:2px;min-width:0;max-width:min(60vw,640px)}
+#lbinfo b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#lbinfo small{color:var(--mute);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#lbdl{min-height:44px}
+.sload{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(200px,100%),1fr));gap:12px;margin-top:14px}
+.sload i{aspect-ratio:3/4;border-radius:10px;background:linear-gradient(100deg,var(--bg2) 30%,#2c2a26 50%,var(--bg2) 70%);background-size:300% 100%;animation:sh2 1.2s linear infinite}
+@keyframes sh2{to{background-position:-150% 0}}
+.sgrid figcaption .src{color:var(--acc);flex:none}
+@media(max-width:600px){#lbinfo{max-width:48vw}#lbhint{display:none}#lb .bar{gap:8px}}
 @media(max-width:600px){.reel{grid-template-columns:minmax(0,1fr)}.acts{justify-content:flex-start}nav .r a{display:none}}
 @media(prefers-reduced-motion:reduce){.gvid{display:none}*{animation:none!important;transition:none!important}.word span,.rv{transform:none;opacity:1}}
 </style></head><body>
@@ -292,9 +301,9 @@ body.menu #side .mlinks>a,body.menu #side .subwrap a{opacity:1;transform:none;tr
   <main class="view" id="v-home">
   <section class="band" id="search" style="padding-top:calc(64px + clamp(28px,4vw,56px));padding-bottom:clamp(28px,4vw,48px)">
     <h2 class="rv">Image search</h2>
-    <p class="lede rv">Type what you want to find. "On Kazha" shows free-to-use images right here; the others open in a new tab.</p>
+    <p class="lede rv">Search any actress, anywhere in the world. "On Kazha" shows openly licensed photos right here, from Wikimedia Commons and Openverse; the other buttons open in a new tab.</p>
     <form class="srch rv" id="sf" autocomplete="off" role="search">
-      <input id="sq" type="search" placeholder="Search images…" aria-label="Search images" required>
+      <input id="sq" type="search" placeholder="Actress name, e.g. Manju Warrier, IU, Zendaya…" aria-label="Search images" required>
       <button class="btn p" type="submit">Search ↗</button>
     </form>
     <div class="engines rv" id="eng" role="group" aria-label="Search with">
@@ -305,6 +314,7 @@ body.menu #side .mlinks>a,body.menu #side .subwrap a{opacity:1;transform:none;tr
     </div>
     <p class="smsg" id="smsg2" aria-live="polite"></p>
     <div class="sgrid" id="sgrid"></div>
+    <div class="sload" id="sload" hidden><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
     <button class="btn" id="smore" hidden>Load more</button>
   </section>
 
@@ -386,7 +396,7 @@ body.menu #side .mlinks>a,body.menu #side .subwrap a{opacity:1;transform:none;tr
   <a href="#reels" data-v="home" style="--d:3">Vids</a>
   </div>
 </aside>
-<div id="lb" role="dialog" aria-label="Zoomed photo"><div class="bar"><span>Pinch, scroll or double-tap to zoom · drag to move</span><div class="zb"><button class="rb" id="zo" aria-label="Zoom out">−</button><button class="rb" id="zi" aria-label="Zoom in">+</button><button class="rb" id="lbx" aria-label="Close">×</button></div></div><img id="lbi" alt=""></div>
+<div id="lb" role="dialog" aria-label="Zoomed photo"><div class="bar"><span id="lbhint">Pinch, scroll or double-tap to zoom · drag to move</span><div id="lbinfo" hidden><b id="lbt"></b><small id="lbc"></small></div><div class="zb"><button class="rb" id="zo" aria-label="Zoom out">−</button><button class="rb" id="zi" aria-label="Zoom in">+</button><button class="btn p" id="lbdl" hidden>↓ Download</button><button class="rb" id="lbx" aria-label="Close">×</button></div></div><img id="lbi" alt=""></div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -511,26 +521,61 @@ $('mno').onclick=()=>{$('mask').classList.remove('on');setMusic(false)};
 document.addEventListener('visibilitychange',()=>{document.hidden?bgm.pause():musPlay()});
 musUI();
 
-/* ---------- image search: in-site (Openverse) or new tab ---------- */
-{const ENG={google:q=>'https://www.google.com/search?tbm=isch&q='+q,ddg:q=>'https://duckduckgo.com/?ia=images&iax=images&q='+q,pin:q=>'https://www.pinterest.com/search/pins/?q='+q};let eng='site',page=1,lastQ='';
+/* ---------- image search: Wikimedia Commons + Openverse in-site, others in a new tab ---------- */
+{const ENG={google:q=>'https://www.google.com/search?tbm=isch&q='+q,ddg:q=>'https://duckduckgo.com/?ia=images&iax=images&q='+q,pin:q=>'https://www.pinterest.com/search/pins/?q='+q};let eng='site';
 const esc2=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const okUrl=u=>typeof u==='string'&&u.startsWith('https://');
+const txt=html=>{try{return (new DOMParser().parseFromString(String(html||''),'text/html').body.textContent||'').trim()}catch(e){return ''}};
+let st={q:'',cOff:0,cMore:false,oPage:1,oMore:false,items:[],busy:false};
 $('eng').querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>{eng=b.dataset.e;$('eng').querySelectorAll('[data-e]').forEach(x=>x.classList.toggle('on',x===b))});
-async function run(q,more){
-  $('smsg2').textContent=more?'Loading more\u2026':'Searching\u2026';$('smore').hidden=true;if(!more){$('sgrid').innerHTML='';page=1}
-  try{
-    const r=await fetch('https://api.openverse.org/v1/images/?mature=false&page_size=20&page='+page+'&q='+encodeURIComponent(q));
-    if(!r.ok)throw new Error(r.status);const d=await r.json();const res=(d.results||[]).filter(x=>okUrl(x.thumbnail)&&okUrl(x.url));
-    if(!res.length&&!more){$('smsg2').textContent='No images found. Try other words, or use Google Images \u2197.';return}
-    $('sgrid').insertAdjacentHTML('beforeend',res.map(x=>'<figure data-full="'+esc2(x.url)+'"><img loading="lazy" src="'+esc2(x.thumbnail)+'" alt="'+esc2(x.title||q)+'"><figcaption><span>'+esc2((x.creator||'Unknown')+' \u00b7 '+(x.license||'').toUpperCase())+'</span>'+(okUrl(x.foreign_landing_url)?'<a href="'+esc2(x.foreign_landing_url)+'" target="_blank" rel="noopener noreferrer">Source</a>':'')+'</figcaption></figure>').join(''));
-    $('smsg2').textContent=(d.result_count?d.result_count.toLocaleString()+' images for \u201c'+q+'\u201d':'');
-    $('smore').hidden=!(d.page_count&&page<d.page_count);
-  }catch(e){$('smsg2').textContent='Image search could not load right now. Try again, or use Google Images \u2197.'}
+async function commons(q,off){
+  const u='https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*&generator=search&gsrnamespace=6&gsrlimit=20&gsroffset='+off+'&gsrsearch='+encodeURIComponent(q+' filetype:bitmap')+'&prop=imageinfo&iiprop=url|extmetadata&iiurlwidth=480&iiextmetadatafilter=LicenseShortName|Artist|ObjectName';
+  const r=await fetch(u);if(!r.ok)throw new Error('commons '+r.status);const d=await r.json();
+  const pages=Object.values((d.query&&d.query.pages)||{}).sort((a,b)=>(a.index||0)-(b.index||0));
+  const items=pages.map(p=>{const ii=(p.imageinfo||[])[0]||{},m=ii.extmetadata||{};const lic=txt(m.LicenseShortName&&m.LicenseShortName.value);
+    return{thumb:ii.thumburl,full:ii.url,title:txt(m.ObjectName&&m.ObjectName.value)||String(p.title||'').replace(/^File:/,'').replace(/\.[a-z]+$/i,''),creator:txt(m.Artist&&m.Artist.value)||'Unknown',license:lic,dl:!!lic,src:'Wikimedia Commons',page:ii.descriptionurl}}).filter(x=>okUrl(x.thumb)&&okUrl(x.full));
+  return{items,more:!!(d.continue&&d.continue.gsroffset),next:d.continue?d.continue.gsroffset:off}
 }
-$('sgrid').addEventListener('click',e=>{if(e.target.closest('a'))return;const f=e.target.closest('figure');if(!f)return;const im=f.querySelector('img');li.src=f.dataset.full;li.onerror=()=>{li.onerror=null;li.src=im.src};li.alt=im.alt;z=1;tx=ty=0;apply();lbx.classList.add('on')});
-$('smore').onclick=()=>{page++;run(lastQ,true)};
+async function openverse(q,page){
+  const r=await fetch('https://api.openverse.org/v1/images/?mature=false&page_size=20&page='+page+'&q='+encodeURIComponent(q));
+  if(!r.ok)throw new Error('openverse '+r.status);const d=await r.json();
+  const items=(d.results||[]).filter(x=>okUrl(x.thumbnail)&&okUrl(x.url)).map(x=>({thumb:x.thumbnail,full:x.url,title:x.title||q,creator:x.creator||'Unknown',license:((x.license||'')+' '+(x.license_version||'')).trim().toUpperCase(),dl:!!x.license,src:'Openverse',page:x.foreign_landing_url}));
+  return{items,more:!!(d.page_count&&page<d.page_count)}
+}
+function render(list){
+  const start=st.items.length;st.items.push(...list);
+  $('sgrid').insertAdjacentHTML('beforeend',list.map((x,i)=>'<figure data-i="'+(start+i)+'" tabindex="0" role="button" aria-label="'+esc2('Preview '+x.title)+'"><img loading="lazy" src="'+esc2(x.thumb)+'" alt="'+esc2(x.title)+'"><figcaption><span>'+esc2(x.creator+(x.license?' · '+x.license:''))+'</span><span class="src">'+esc2(x.src==='Wikimedia Commons'?'Commons':'Openverse')+'</span></figcaption></figure>').join(''));
+  $('sgrid').querySelectorAll('figure:not([data-ok])').forEach(f=>{f.dataset.ok=1;const im=f.querySelector('img');im.addEventListener('error',()=>f.remove(),{once:true})});
+}
+async function run(more){
+  if(st.busy)return;st.busy=true;$('smore').hidden=true;$('sload').hidden=false;$('smsg2').textContent=more?'Loading more…':'Searching for “'+st.q+'”…';
+  if(!more){$('sgrid').innerHTML='';st.items=[];st.cOff=0;st.oPage=1;st.cMore=true;st.oMore=true}
+  const jobs=[st.cMore?commons(st.q,st.cOff):null,st.oMore?openverse(st.q,st.oPage):null];
+  const [c,o]=await Promise.allSettled(jobs.map(j=>j||Promise.resolve(null)));
+  let a=[],b=[],fails=0;
+  if(c.status==='fulfilled'&&c.value){a=c.value.items;st.cMore=c.value.more;st.cOff=c.value.next}else if(c.status==='rejected'){fails++;st.cMore=false}
+  if(o.status==='fulfilled'&&o.value){b=o.value.items;st.oMore=o.value.more;st.oPage++}else if(o.status==='rejected'){fails++;st.oMore=false}
+  const mix=[];for(let i=0;i<Math.max(a.length,b.length);i++){if(a[i])mix.push(a[i]);if(b[i])mix.push(b[i])}
+  const seen=new Set(st.items.map(x=>x.full));render(mix.filter(x=>!seen.has(x.full)&&seen.add(x.full)));
+  $('sload').hidden=true;st.busy=false;
+  if(!st.items.length){$('smsg2').textContent=fails===2?'Image search could not load right now. Check your connection and try again.':'No openly licensed photos found for “'+st.q+'”. Try the full name or another spelling, or use Google Images ↗.';return}
+  $('smsg2').textContent=st.items.length+' photos for “'+st.q+'” · tap one to preview';
+  $('smore').hidden=!(st.cMore||st.oMore);
+}
+let cur2=null;
+function openItem(x){cur2=x;li.onerror=()=>{li.onerror=null;li.src=x.thumb};li.src=x.full;li.alt=x.title;z=1;tx=ty=0;apply();
+  $('lbt').textContent=x.title;$('lbc').textContent=x.creator+(x.license?' · '+x.license:'')+' · via '+x.src;$('lbinfo').hidden=false;$('lbhint').hidden=true;$('lbdl').hidden=!x.dl;lbx.classList.add('on')}
+new MutationObserver(()=>{if(!lbx.classList.contains('on')){cur2=null;$('lbinfo').hidden=true;$('lbhint').hidden=false;$('lbdl').hidden=true}}).observe(lbx,{attributes:true,attributeFilter:['class']});
+$('lbdl').onclick=async()=>{if(!cur2||!cur2.dl)return;const b=$('lbdl'),t=b.textContent;b.textContent='Downloading…';b.disabled=true;
+  try{const r=await fetch(cur2.full);if(!r.ok)throw 0;const blob=await r.blob();const ext=(blob.type.split('/')[1]||'jpg').replace('jpeg','jpg');const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(cur2.title||'image').replace(/[^\w\- ]+/g,'').trim().slice(0,60).replace(/\s+/g,'-')+'.'+ext;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);toast('Downloaded · credit: '+cur2.creator+(cur2.license?' ('+cur2.license+')':''))}
+  catch(e){toast('This image could not be downloaded here')}
+  b.textContent=t;b.disabled=false};
+$('sgrid').addEventListener('click',e=>{const f=e.target.closest('figure');if(f&&st.items[+f.dataset.i])openItem(st.items[+f.dataset.i])});
+$('sgrid').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){const f=e.target.closest('figure');if(f){e.preventDefault();openItem(st.items[+f.dataset.i])}}});
+$('smore').onclick=()=>run(true);
+new IntersectionObserver(es=>{if(es[0].isIntersecting&&!$('smore').hidden)run(true)},{rootMargin:'400px'}).observe($('smore'));
 $('sf').addEventListener('submit',e=>{e.preventDefault();const q=$('sq').value.trim();if(!q)return;
-  if(eng==='site'){lastQ=q;run(q,false);return}
+  if(eng==='site'){st.q=q;run(false);return}
   const a=document.createElement('a');a.href=ENG[eng](encodeURIComponent(q));a.target='_blank';a.rel='noopener noreferrer';document.body.appendChild(a);a.click();a.remove()});}
 
 /* ---------- views, menu, glitch ---------- */
