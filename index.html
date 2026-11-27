@@ -519,13 +519,13 @@ $('eng').querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>{eng=b.dataset.e;
 async function run(q,more){
   $('smsg2').textContent=more?'Loading more\u2026':'Searching\u2026';$('smore').hidden=true;if(!more){$('sgrid').innerHTML='';page=1}
   try{
-    const r=await fetch('https://api.openverse.org/v1/images/?mature=false&page_size=24&page='+page+'&q='+encodeURIComponent(q));
+    const r=await fetch('https://api.openverse.org/v1/images/?mature=false&page_size=20&page='+page+'&q='+encodeURIComponent(q));
     if(!r.ok)throw new Error(r.status);const d=await r.json();const res=(d.results||[]).filter(x=>okUrl(x.thumbnail)&&okUrl(x.url));
     if(!res.length&&!more){$('smsg2').textContent='No images found. Try other words, or use Google Images \u2197.';return}
     $('sgrid').insertAdjacentHTML('beforeend',res.map(x=>'<figure data-full="'+esc2(x.url)+'"><img loading="lazy" src="'+esc2(x.thumbnail)+'" alt="'+esc2(x.title||q)+'"><figcaption><span>'+esc2((x.creator||'Unknown')+' \u00b7 '+(x.license||'').toUpperCase())+'</span>'+(okUrl(x.foreign_landing_url)?'<a href="'+esc2(x.foreign_landing_url)+'" target="_blank" rel="noopener noreferrer">Source</a>':'')+'</figcaption></figure>').join(''));
     $('smsg2').textContent=(d.result_count?d.result_count.toLocaleString()+' images for \u201c'+q+'\u201d':'');
     $('smore').hidden=!(d.page_count&&page<d.page_count);
-  }catch(e){$('smsg2').textContent='Image search could not load here. On kazha.netlify.app it works; or use Google Images \u2197.'}
+  }catch(e){$('smsg2').textContent='Image search could not load right now. Try again, or use Google Images \u2197.'}
 }
 $('sgrid').addEventListener('click',e=>{if(e.target.closest('a'))return;const f=e.target.closest('figure');if(!f)return;const im=f.querySelector('img');li.src=f.dataset.full;li.onerror=()=>{li.onerror=null;li.src=im.src};li.alt=im.alt;z=1;tx=ty=0;apply();lbx.classList.add('on')});
 $('smore').onclick=()=>{page++;run(lastQ,true)};
