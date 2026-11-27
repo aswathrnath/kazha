@@ -311,7 +311,7 @@ body.menu #side .mlinks>a,body.menu #side .subwrap a{opacity:1;transform:none;tr
     <span class="tag">One Stop Destination to Kazha</span>
     <p>A private fanpage. Enter the password to come in.</p>
     <form class="gform" id="gf" autocomplete="off">
-      <input id="pw" type="password" placeholder="Password" aria-label="Password" required>
+      <input id="pw" type="password" placeholder="Password" aria-label="Password" required autocapitalize="none" autocorrect="off" spellcheck="false" autocomplete="off" inputmode="text">
       <button type="button" class="eye" id="eye" aria-pressed="false">Show</button>
       <button type="submit" id="gb">Enter</button>
     </form>
@@ -462,9 +462,9 @@ $('gf').addEventListener('submit',async ev=>{
   ev.preventDefault();audio();
   const now=Date.now();if(now<lockUntil){$('gerr').textContent='Too many tries. Wait '+Math.ceil((lockUntil-now)/1000)+'s.';return}
   $('gb').disabled=true;$('gerr').textContent='';
-  try{const u=await unlock($('pw').value);reels=u.data;$('pw').value='';$('pdots').innerHTML='';burst();await loadImgs(u.k);open()}
+  $('gb').textContent='Checking\u2026';try{const u=await unlock($('pw').value.trim().toLowerCase());reels=u.data;$('pw').value='';$('pdots').innerHTML='';burst();await loadImgs(u.k);open()}
   catch(e){tries++;if(tries>=5){lockUntil=Date.now()+30000*2**(tries-5)}$('gerr').textContent='That isn’t it.';$('gf').classList.add('bad');const b=document.querySelector('.gbox');b.classList.remove('shake');void b.offsetWidth;b.classList.add('shake');thump(55,.15)}
-  $('gb').disabled=false;
+  $('gb').disabled=false;$('gb').textContent='Enter';
 });
 let imgUrls=[];
 async function loadImgs(k){
@@ -633,12 +633,12 @@ $('sf').addEventListener('submit',e=>{e.preventDefault();const q=$('sq').value.t
 /* tiny lips burst when the big lips are touched */
 {const LIP='<svg viewBox="60 88 100 40" width="30" height="22"><path d="M70 112c14-16 26-18 40-8 14-10 26-8 40 8-14 22-66 22-80 0z" fill="#d94a5a"/><path d="M70 112c26 6 54 6 80 0" stroke="#7a1f2b" stroke-width="3" fill="none" stroke-linecap="round"/></svg>';
 const lips=document.querySelector('.kissart .lips');let last=0;
-function burst(e){if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;const now=performance.now();if(now-last<250)return;last=now;
+function lipBurst(e){if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;const now=performance.now();if(now-last<250)return;last=now;
   const r=lips.getBoundingClientRect(),cx=e.clientX||r.left+r.width/2,cy=e.clientY||r.top+r.height/2;
   for(let i=0;i<14;i++){const d=document.createElement('div');d.className='minilip';d.innerHTML=LIP;d.style.left=(cx-15)+'px';d.style.top=(cy-11)+'px';
     const a=Math.random()*Math.PI*2,rad=70+Math.random()*140;d.style.setProperty('--mx',Math.cos(a)*rad+'px');d.style.setProperty('--my',(Math.sin(a)*rad-40)+'px');d.style.setProperty('--ms',(.6+Math.random()*.8).toFixed(2));d.style.setProperty('--mr',(Math.random()*80-40)+'deg');
     document.body.appendChild(d);setTimeout(()=>d.remove(),1150)}}
-if(lips){lips.addEventListener('pointerenter',burst);lips.addEventListener('pointerdown',burst)}}
+if(lips){lips.addEventListener('pointerenter',lipBurst);lips.addEventListener('pointerdown',lipBurst)}}
 
 /* ---------- views, menu, glitch ---------- */
 const VIEWS={home:'v-home','insta-models':'v-models','nisha-gowda':'v-nisha','for-actress-lovers':'v-vids'};
