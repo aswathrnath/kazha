@@ -304,6 +304,11 @@ body.menu #side .mlinks>a,body.menu #side .subwrap a{opacity:1;transform:none;tr
 @keyframes pzoom{from{transform:scale(1)}to{transform:scale(1.45)}}
 .pol.dragging .pimg img{animation-play-state:paused}
 @media(prefers-reduced-motion:reduce){.pol .pimg img{animation:none}}
+/* name fades in while a paper clip is touched */
+.ntag{position:absolute;left:0;right:0;bottom:0;height:44px;display:grid;place-items:center;font-family:Syne,sans-serif;font-weight:800;text-transform:uppercase;letter-spacing:.12em;font-size:clamp(13px,1.6vw,17px);color:#d94a5a;background:#f2efe6;opacity:0;filter:blur(6px);transform:translateY(6px);transition:opacity .45s ease,filter .45s ease,transform .45s ease;pointer-events:none;border-radius:0 0 3px 3px}
+.pol.named .ntag{opacity:1;filter:none;transform:none}
+.pol .lbl{transition:opacity .35s}
+.pol.named .lbl{opacity:0}
 @media(max-width:600px){.reel{grid-template-columns:minmax(0,1fr)}.acts{justify-content:flex-start}nav .r a{display:none}}
 @media(prefers-reduced-motion:reduce){.gvid{display:none}*{animation:none!important;transition:none!important}.word span,.rv{transform:none;opacity:1}}
 </style></head><body>
@@ -369,7 +374,7 @@ body.menu #side .mlinks>a,body.menu #side .subwrap a{opacity:1;transform:none;tr
   <section class="band" id="board">
     <h2 class="rv">Hotties on the Groove Street</h2>
     <p class="lede rv">Drag the prints around, tap a paper clip to unclip it, double-tap a print to zoom in.</p>
-    <div class="board" id="bd"><figure class="pol" data-i="0"><button type="button" class="clipb" aria-label="Toggle paper clip" style="all:unset"><svg class="clip" viewBox="0 0 30 74" aria-hidden="true"><path d="M9 60V14a6 6 0 0 1 12 0v44a9 9 0 0 1-18 0V10a12 12 0 0 1 24 0v46" fill="none" stroke="#c9c4b8" stroke-width="2.6" stroke-linecap="round"/><path d="M9 60V14a6 6 0 0 1 12 0" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="1" stroke-linecap="round"/></svg></button><div class="pimg"><img data-n="1" alt="Nisha Gowda photo 1"></div><div class="lbl"><span>Nisha Gowda</span><span>No. 1</span></div></figure><figure class="pol" data-i="1"><button type="button" class="clipb" aria-label="Toggle paper clip" style="all:unset"><svg class="clip" viewBox="0 0 30 74" aria-hidden="true"><path d="M9 60V14a6 6 0 0 1 12 0v44a9 9 0 0 1-18 0V10a12 12 0 0 1 24 0v46" fill="none" stroke="#c9c4b8" stroke-width="2.6" stroke-linecap="round"/><path d="M9 60V14a6 6 0 0 1 12 0" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="1" stroke-linecap="round"/></svg></button><div class="pimg"><img data-n="0" alt="Nisha Gowda photo 2"></div><div class="lbl"><span>Nisha Gowda</span><span>No. 2</span></div></figure><figure class="pol" data-i="2"><button type="button" class="clipb" aria-label="Toggle paper clip" style="all:unset"><svg class="clip" viewBox="0 0 30 74" aria-hidden="true"><path d="M9 60V14a6 6 0 0 1 12 0v44a9 9 0 0 1-18 0V10a12 12 0 0 1 24 0v46" fill="none" stroke="#c9c4b8" stroke-width="2.6" stroke-linecap="round"/><path d="M9 60V14a6 6 0 0 1 12 0" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="1" stroke-linecap="round"/></svg></button><div class="pimg"><img data-n="2" alt="Nisha Gowda photo 3"></div><div class="lbl"><span>Nisha Gowda</span><span>No. 3</span></div></figure></div>
+    <div class="board" id="bd"><figure class="pol" data-i="0"><button type="button" class="clipb" aria-label="Toggle paper clip" style="all:unset"><svg class="clip" viewBox="0 0 30 74" aria-hidden="true"><path d="M9 60V14a6 6 0 0 1 12 0v44a9 9 0 0 1-18 0V10a12 12 0 0 1 24 0v46" fill="none" stroke="#c9c4b8" stroke-width="2.6" stroke-linecap="round"/><path d="M9 60V14a6 6 0 0 1 12 0" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="1" stroke-linecap="round"/></svg></button><div class="pimg"><img data-n="1" alt="Nisha Gowda photo 1"></div><div class="lbl"><span>Nisha Gowda</span><span>No. 1</span></div><div class="ntag" aria-hidden="true">Nisha Gowda</div></figure><figure class="pol" data-i="1"><button type="button" class="clipb" aria-label="Toggle paper clip" style="all:unset"><svg class="clip" viewBox="0 0 30 74" aria-hidden="true"><path d="M9 60V14a6 6 0 0 1 12 0v44a9 9 0 0 1-18 0V10a12 12 0 0 1 24 0v46" fill="none" stroke="#c9c4b8" stroke-width="2.6" stroke-linecap="round"/><path d="M9 60V14a6 6 0 0 1 12 0" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="1" stroke-linecap="round"/></svg></button><div class="pimg"><img data-n="0" alt="Nisha Gowda photo 2"></div><div class="lbl"><span>Nisha Gowda</span><span>No. 2</span></div><div class="ntag" aria-hidden="true">Nisha Gowda</div></figure><figure class="pol" data-i="2"><button type="button" class="clipb" aria-label="Toggle paper clip" style="all:unset"><svg class="clip" viewBox="0 0 30 74" aria-hidden="true"><path d="M9 60V14a6 6 0 0 1 12 0v44a9 9 0 0 1-18 0V10a12 12 0 0 1 24 0v46" fill="none" stroke="#c9c4b8" stroke-width="2.6" stroke-linecap="round"/><path d="M9 60V14a6 6 0 0 1 12 0" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="1" stroke-linecap="round"/></svg></button><div class="pimg"><img data-n="2" alt="Nisha Gowda photo 3"></div><div class="lbl"><span>Nisha Gowda</span><span>No. 3</span></div><div class="ntag" aria-hidden="true">Nisha Gowda</div></figure></div>
     <div class="bctl"><button class="btn" id="shuf">Shuffle prints</button><button class="btn" id="reclip">Clip all back</button></div>
   </section>
 
@@ -565,6 +570,13 @@ function lipBurst(e){if(matchMedia('(prefers-reduced-motion: reduce)').matches)r
     const a=Math.random()*Math.PI*2,rad=70+Math.random()*140;d.style.setProperty('--mx',Math.cos(a)*rad+'px');d.style.setProperty('--my',(Math.sin(a)*rad-40)+'px');d.style.setProperty('--ms',(.6+Math.random()*.8).toFixed(2));d.style.setProperty('--mr',(Math.random()*80-40)+'deg');
     document.body.appendChild(d);setTimeout(()=>d.remove(),1150)}}
 if(lips){lips.addEventListener('pointerenter',lipBurst);lips.addEventListener('pointerdown',lipBurst)}}
+
+/* paper clip: hold or hover to show the name, release to fade it */
+document.querySelectorAll('.pol .clipb').forEach(c=>{const p=c.closest('.pol');let t;
+  const on=()=>{clearTimeout(t);p.classList.add('named')},off=(d)=>{clearTimeout(t);t=setTimeout(()=>p.classList.remove('named'),d||0)};
+  c.addEventListener('pointerenter',e=>{if(e.pointerType==='mouse')on()});c.addEventListener('pointerleave',()=>off(150));
+  c.addEventListener('pointerdown',on);c.addEventListener('pointerup',e=>{if(e.pointerType!=='mouse')off(400)});c.addEventListener('pointercancel',()=>off());
+  c.addEventListener('focus',on);c.addEventListener('blur',()=>off())});
 
 /* ---------- views, menu, glitch ---------- */
 const VIEWS={home:'v-home','insta-models':'v-models','nisha-gowda':'v-nisha','for-actress-lovers':'v-vids'};
